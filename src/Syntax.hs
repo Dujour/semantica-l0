@@ -7,3 +7,4 @@ data Terms =
   | ZERO | SUCC Terms
   | IF (Terms, Terms, Terms)
   | ISZERO Terms | PRED Terms
+  deriving (Show)
