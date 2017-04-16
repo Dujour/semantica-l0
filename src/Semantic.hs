@@ -3,6 +3,7 @@
 module Semantic where
 
 import           Syntax
+import           Types
 
 
 -- | Auxiliary Function that verify if a term is a Numeric Value
@@ -10,6 +11,7 @@ isNumericValue :: Terms -> Bool
 isNumericValue (SUCC term) = isNumericValue term
 isNumericValue ZERO        = True
 isNumericValue _           = False
+
 
 step :: Terms -> Maybe Terms
 
@@ -19,8 +21,6 @@ step ( IF (FALSE , _  , t3 ) ) = Just t3
 step ( IF (t1    , t2 , t3 ) ) = case step t1 of
                                    Just t1' -> Just $ IF (t1', t2, t3)
                                    Nothing  -> Just t1
-
--- | Step rules to numeric values operations
 
 -- | Step rules to SUCC statement
 step ( SUCC t )                = case step t of
@@ -44,8 +44,20 @@ step ( ISZERO t)               = case step t of
 -- | No rules applies
 step _ = Nothing
 
+
+-- | Type Unsafe evaluation
+evalUnsafe :: Terms -> Terms
+evalUnsafe term =
+  case step term of
+    Just term' -> evalUnsafe term'
+    Nothing    -> term
+
+
+-- | Type safe evaluation
 eval :: Terms -> Terms
-eval t =
-  case step t of
-    Just t' -> eval t'
-    Nothing -> t
+eval typedTerm =
+  case typeInfer typedTerm of
+    INVALIDTYPE -> error "Type error on evaluation of term"
+    _ -> case step typedTerm of
+      Just typedTerm' -> eval typedTerm'
+      Nothing         -> typedTerm
